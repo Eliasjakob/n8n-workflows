@@ -1,0 +1,55 @@
+name: JSON Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate workflow JSON files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate JSON parseability
+        run: |
+          set -e
+          find workflows -name "*.json" -print0 | while IFS= read -r -d '' f; do
+            echo "→ $f"
+            python -m json.tool "$f" > /dev/null
+          done
+          echo "✓ all JSON files parse cleanly"
+
+      - name: Validate n8n schema
+        run: |
+          python <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          REQUIRED_KEYS = {"name", "nodes", "connections"}
+          errors = []
+          for f in Path("workflows").rglob("*.json"):
+              data = json.loads(f.read_text())
+              missing = REQUIRED_KEYS - set(data.keys())
+              if missing:
+                  errors.append(f"{f}: missing keys {missing}")
+              elif not isinstance(data.get("nodes"), list) or len(data["nodes"]) == 0:
+                  errors.append(f"{f}: no nodes defined")
+              else:
+                  print(f"✓ {f}: {len(data['nodes'])} nodes")
+
+          if errors:
+              for e in errors:
+                  print(f"✗ {e}", file=sys.stderr)
+              sys.exit(1)
+          PY
