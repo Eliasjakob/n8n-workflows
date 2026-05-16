@@ -117,7 +117,11 @@ See [`../../docs/compliance-notice.md`](../../docs/compliance-notice.md) for the
 
 ## Screenshots
 
-> 📸 *N8N editor screenshots go here — see [`screenshots/`](screenshots/).*
+![n8n editor — full workflow canvas (33 nodes)](screenshots/01-canvas-overview.png)
+
+The screenshot above shows the full node graph in the n8n editor. From left to right:
+**intake** (Tally trigger / Webhook) → **normalization** (Edit Fields) → **classification** (GPT-4.1-mini)
+→ **branching** (Switch) → **PDF generation** (PDFMonkey) → **approval** (Telegram) → **delivery** (Gmail).
 
 ## Why this design?
 
